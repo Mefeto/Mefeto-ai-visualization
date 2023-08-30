@@ -1,11 +1,7 @@
 import * as d3 from "d3";
-import styles from "../../style/scatterplot.module.css";
-
-import { AxisLeft } from "./axis-left.tsx";
-import { AxisBottom } from "./axis-bottom.tsx";
 import { DataHandlerReturnType } from "../util/data-handler.ts";
 import { useDebouncedState } from "@mantine/hooks";
-import { ElementRef, useEffect, useLayoutEffect, useRef } from "react";
+import { ElementRef, useLayoutEffect, useRef } from "react";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -20,10 +16,10 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
 
   // const [hovered, setHovered] = useState<InteractionData | null>(null);
-  const [hoveredGroup, setHoveredGroup] = useDebouncedState<string | null>(
-    null,
-    200,
-  );
+  // const [hoveredGroup, setHoveredGroup] = useDebouncedState<string | null>(
+  //   null,
+  //   200,
+  // );
 
   const svgRef = useRef<ElementRef<"svg">>(null);
 
@@ -102,7 +98,7 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
     // dots
     const gDot = svg
       .append("g")
-      .attr("fill", "#f2f4f6")
+      .attr("fill", "none")
       .attr("stroke-linecap", "round");
 
     gDot
@@ -110,7 +106,7 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
       .data(data)
       .join("path")
       .attr("d", (d) => `M${xScale(d.x)},${yScale(d.y)}h0`)
-      .attr("stroke", (d) => z(0));
+      .attr("stroke", (d) => colorScale(d.group_id));
 
     // grix x and y coordinates
     const gx = svg.append("g");
@@ -123,20 +119,20 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
   }, [width, height, data]);
 
   // cluster 끼리 색 다르도록
-  // const allGroups = data.map((v) => String(v.group_id));
-  // const colorScale = d3
-  //   .scaleOrdinal<string>()
-  //   .domain(allGroups)
-  //   .range([
-  //     "#e0ac2b",
-  //     "#e85252",
-  //     "#6689c6",
-  //     "#9a6fb0",
-  //     "#a53253",
-  //     "#4caf50",
-  //     "#607d8b",
-  //     "#795548",
-  //   ]);
+  const allGroups = data.map((v) => String(v.group_id));
+  const colorScale = d3
+    .scaleOrdinal<string>()
+    .domain(allGroups)
+    .range([
+      "#e0ac2b",
+      "#e85252",
+      "#6689c6",
+      "#9a6fb0",
+      "#a53253",
+      "#4caf50",
+      "#607d8b",
+      "#795548",
+    ]);
   return (
     <div style={{ position: "relative" }}>
       <svg width={width} height={height} ref={svgRef}></svg>
