@@ -11,7 +11,7 @@ export default function App() {
 
   return (
     <Center h={height} w={width}>
-      <ScatterPlot data={data} width={1200} height={700} />
+      <ScatterPlot data={data} width={width - 16} height={height - 16} />
     </Center>
   );
 }
