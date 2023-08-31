@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import { DataHandlerReturnType } from "../util/data-handler.ts";
 import { ElementRef, useLayoutEffect, useRef, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
-import { Drawer, ScrollArea, Text } from "@mantine/core";
-import { InteractionData } from "./node-tooltip.tsx";
+import { Badge, Drawer, Group, ScrollArea, Stack, Text } from "@mantine/core";
+import { ArticlePropType, articles } from "../data/article.ts";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -20,10 +20,10 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
   const boundsWidth = width - MARGIN.right - MARGIN.left;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
 
-  const [hovered, setHovered] = useState<InteractionData | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
-  const [clickedNode, setClickedNode] =
-    useState<ArrayElement<DataHandlerReturnType> | null>(null);
+  const [clickedNode, setClickedNode] = useState<
+    ArrayElement<DataHandlerReturnType> | null | undefined
+  >(null);
 
   const svgRef = useRef<ElementRef<"svg">>(null);
 
@@ -166,7 +166,43 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
             },
           }}
         >
-          <Text>{clickedNode?.x}</Text>
+          <Text fz={40} fw={600}>
+            Lorem Ipsum
+          </Text>
+          <Stack spacing="xs" mt="md">
+            <Badge size="xs" w={200}>
+              Article id : {clickedNode?.id}
+            </Badge>
+            <Badge size="xs" w={200}>
+              Cluster id : {clickedNode?.group_id}
+            </Badge>
+          </Stack>
+          <Group spacing="sm" mt="xs">
+            <Badge variant="dot" size="xs">
+              x : {clickedNode?.x}
+            </Badge>
+            <Badge variant="dot" size="xs">
+              y : {clickedNode?.y}
+            </Badge>
+          </Group>
+          <Text color="dimmed" size="sm" mt="md">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
+            vitae mollis dui. Duis id blandit justo, non scelerisque risus.
+            Aenean tempus a quam sit amet laoreet. Suspendisse volutpat mi leo,
+            at mattis lacus porttitor ut. Sed cursus neque risus, eu malesuada
+            tellus feugiat quis. Nunc nunc leo, efficitur ac tempus at, placerat
+            eget neque. Duis lacus nisi, auctor ac est eget, tempus tempus arcu.
+            Praesent viverra pellentesque elit in hendrerit. Curabitur ipsum
+            urna, consequat quis auctor sit amet, dictum non justo. Suspendisse
+            sit amet condimentum diam, vitae vulputate tellus. Pellentesque
+            porttitor elementum elit. Cras vitae elit finibus, vulputate mi
+            vitae, luctus erat. Pellentesque consequat, massa et bibendum
+            feugiat, lectus odio aliquet ante, et tempor ante purus quis ipsum.
+            Morbi imperdiet orci ac nulla mollis, in pellentesque eros maximus.
+            Duis quis sagittis velit. Praesent dignissim, justo at vulputate
+            eleifend, ligula lectus tristique lacus, at facilisis mi turpis et
+            quam.
+          </Text>
         </Drawer>
       </div>
     </>

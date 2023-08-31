@@ -1,3 +1,5 @@
+import { articles } from "../data/article.ts";
+
 export type DataHandlerReturnType = {
   x: number;
   y: number;
@@ -15,4 +17,8 @@ export const dataHandler = (
       group_id: i.clusterID,
     };
   });
+};
+
+export const getArticleWithId = (articleID: string) => {
+  return articles.find((d) => d.articleID === articleID);
 };
