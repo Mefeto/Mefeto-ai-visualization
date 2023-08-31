@@ -1,7 +1,9 @@
 import * as d3 from "d3";
 import { DataHandlerReturnType } from "../util/data-handler.ts";
-import { useDebouncedState } from "@mantine/hooks";
-import { ElementRef, useLayoutEffect, useRef } from "react";
+import { ElementRef, useLayoutEffect, useRef, useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { Drawer, ScrollArea, Text } from "@mantine/core";
+import { InteractionData } from "./node-tooltip.tsx";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -11,15 +13,17 @@ type AxisBasicProps = {
   height: number;
 };
 
+type ArrayElement<ArrayType extends readonly unknown[]> =
+  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+
 export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
   const boundsWidth = width - MARGIN.right - MARGIN.left;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
 
-  // const [hovered, setHovered] = useState<InteractionData | null>(null);
-  // const [hoveredGroup, setHoveredGroup] = useDebouncedState<string | null>(
-  //   null,
-  //   200,
-  // );
+  const [hovered, setHovered] = useState<InteractionData | null>(null);
+  const [opened, { open, close }] = useDisclosure(false);
+  const [clickedNode, setClickedNode] =
+    useState<ArrayElement<DataHandlerReturnType> | null>(null);
 
   const svgRef = useRef<ElementRef<"svg">>(null);
 
@@ -30,10 +34,6 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
       .scaleLinear()
       .domain([-0.1, 1.2])
       .range([boundsHeight, 0]);
-    const z = d3
-      .scaleOrdinal()
-      .domain(data.map((d) => d[2]))
-      .range(d3.schemeCategory10) as any;
     const k = height / width;
 
     // xAxis , yAxis
@@ -83,12 +83,17 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
     function zoomed({ transform }) {
       const zx = transform.rescaleX(xScale).interpolate(d3.interpolateRound);
       const zy = transform.rescaleY(yScale).interpolate(d3.interpolateRound);
-      gDot.attr("transform", transform).attr("stroke-width", 5 / transform.k);
+      gCircles
+        .attr("transform", transform)
+        .selectAll("circle")
+        .data(data)
+        .attr("stroke-width", 0.2 / Math.sqrt(transform.k))
+        .attr("r", 3 / Math.sqrt(transform.k));
       gx.call(xAxis, zx);
       gy.call(yAxis, zy);
       gGrid.call(grid, zx, zy);
     }
-    const zoom = d3.zoom().scaleExtent([0.5, 32]).on("zoom", zoomed);
+    const zoom = d3.zoom().scaleExtent([0.5, 1000]).on("zoom", zoomed);
 
     const svg = d3.select(svgRef.current);
 
@@ -96,17 +101,28 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
     const gGrid = svg.append("g");
 
     // dots
-    const gDot = svg
+    const gCircles = svg
       .append("g")
       .attr("fill", "none")
       .attr("stroke-linecap", "round");
 
-    gDot
-      .selectAll("path")
+    gCircles
+      .selectAll("circle")
       .data(data)
-      .join("path")
-      .attr("d", (d) => `M${xScale(d.x)},${yScale(d.y)}h0`)
-      .attr("stroke", (d) => colorScale(d.group_id));
+      .join("circle")
+      .attr("cx", (d) => xScale(d.x))
+      .attr("cy", (d) => yScale(d.y))
+      .attr("r", 2) // radius of the circle
+      .attr("stroke", (d) => colorScale(d.group_id))
+      .attr("fill", (d) => colorScale(d.group_id))
+      .attr("fill-opacity", 0.2)
+      .attr("stroke-width", 1)
+      .on("click", (_, d) => {
+        console.log("Circle clicked", d);
+        setClickedNode(d);
+        open();
+      })
+      .style("cursor", "pointer");
 
     // grix x and y coordinates
     const gx = svg.append("g");
@@ -133,9 +149,26 @@ export const ScatterPlot = ({ data, width, height }: AxisBasicProps) => {
       "#607d8b",
       "#795548",
     ]);
+
   return (
-    <div style={{ position: "relative" }}>
-      <svg width={width} height={height} ref={svgRef}></svg>
-    </div>
+    <>
+      <div style={{ position: "relative" }}>
+        <svg width={width} height={height} ref={svgRef}></svg>
+        <Drawer
+          opened={opened}
+          onClose={close}
+          position="right"
+          size="md"
+          scrollAreaComponent={ScrollArea.Autosize}
+          styles={{
+            root: {
+              wordBreak: "keep-all",
+            },
+          }}
+        >
+          <Text>{clickedNode?.x}</Text>
+        </Drawer>
+      </div>
+    </>
   );
 };
